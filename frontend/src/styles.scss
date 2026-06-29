@@ -1,0 +1,122 @@
+@use '@angular/material' as mat;
+
+// Uber-like custom theme - dark primary with green accent
+$dark-primary: mat.m2-define-palette(mat.$m2-gray-palette, 900, 800, 50);
+$green-accent: mat.m2-define-palette((
+  50: #e6f9ed,
+  100: #b3efd1,
+  200: #80e5b5,
+  300: #4ddb99,
+  400: #26d480,
+  500: #06C167,
+  600: #05a85a,
+  700: #048f4d,
+  800: #037640,
+  900: #025d33,
+  A100: #80ffb3,
+  A200: #4dff99,
+  A400: #1aff80,
+  A700: #00ff73,
+  contrast: (
+    50: rgba(black, 0.87),
+    100: rgba(black, 0.87),
+    200: rgba(black, 0.87),
+    300: rgba(black, 0.87),
+    400: rgba(black, 0.87),
+    500: white,
+    600: white,
+    700: white,
+    800: white,
+    900: white,
+    A100: rgba(black, 0.87),
+    A200: rgba(black, 0.87),
+    A400: rgba(black, 0.87),
+    A700: rgba(black, 0.87),
+  )
+));
+$warn-palette: mat.m2-define-palette(mat.$m2-red-palette);
+
+$click2connect-theme: mat.m2-define-light-theme((
+  color: (
+    primary: $dark-primary,
+    accent: $green-accent,
+    warn: $warn-palette,
+  ),
+  typography: mat.m2-define-typography-config(
+    $font-family: '"Inter", "Helvetica Neue", Arial, sans-serif',
+  ),
+  density: 0,
+));
+
+@include mat.core();
+@include mat.all-component-themes($click2connect-theme);
+
+// Global styles - Uber-like clean, minimal design
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+  background-color: #ffffff;
+  color: #000000;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+// Responsive utilities
+.container {
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 16px;
+
+  @media (min-width: 768px) {
+    padding: 0 24px;
+  }
+
+  @media (min-width: 1200px) {
+    padding: 0 32px;
+  }
+}
+
+// Map layout - Requirement 12.2
+.map-container {
+  width: 100%;
+  // Mobile: 50% viewport height
+  height: 50vh;
+
+  @media (min-width: 768px) {
+    // Desktop: 60% viewport height
+    height: 60vh;
+  }
+}
+
+// Prevent horizontal scrolling - Requirement 12.1
+body {
+  overflow-x: hidden;
+}
+
+// Transitions - smooth at 30fps minimum, max 300ms
+.transition-smooth {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+// Action button styling (Uber green)
+.btn-action {
+  background-color: #06C167 !important;
+  color: white !important;
+  border-radius: 8px !important;
+  font-weight: 500 !important;
+  text-transform: none !important;
+}
+
+// Card styling
+.card-elevated {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #f0f0f0;
+}
