@@ -6,7 +6,6 @@ import { ServiceCategory } from '../entities/ServiceCategory';
 import { ApiError } from '../errors/api-error';
 import { storageService } from './storage.service';
 import { redisService } from './redis.service';
-import { emailService } from './email.service';
 
 const BCRYPT_ROUNDS = 10;
 
@@ -29,18 +28,29 @@ export class ProviderService {
 
   /**
    * Register a new service provider.
-   * Creates profile with status "pending" awaiting admin verification.
+   * - Prevents duplicate applications
+   * - Creates profile with status "pending"
    */
   async register(
     dto: RegisterProviderDto,
     documentFile?: { buffer: Buffer; mimetype: string; originalname: string; size: number }
   ): Promise<{ providerId: string; message: string }> {
-    // Check duplicate email
+    // Check if already applied (prevent duplicate applications)
     const existing = await this.providerRepo.findOne({
       where: { email: dto.email.toLowerCase().trim() },
     });
+
     if (existing) {
-      throw ApiError.conflict('A provider with this email already exists', { field: 'email' });
+      if (existing.status === ProviderStatus.PENDING) {
+        throw ApiError.conflict('Your application is already pending review. Please wait for admin approval.', {
+          field: 'email',
+          status: 'pending',
+        });
+      }
+      if (existing.status === ProviderStatus.ACTIVE) {
+        throw ApiError.conflict('You are already a registered provider.', { field: 'email' });
+      }
+      // If suspended/deactivated, allow re-application
     }
 
     // Validate categories (1-5)
@@ -63,22 +73,10 @@ export class ProviderService {
       ]);
     }
 
-    // Upload ID document
-    let documentUrl: string | null = null;
-    if (documentFile) {
-      const validation = storageService.validateFile(documentFile);
-      if (!validation.valid) {
-        throw ApiError.badRequest(validation.error!, [
-          { field: 'id_document', message: validation.error! },
-        ]);
-      }
-      documentUrl = await storageService.uploadFile(documentFile, 'id-documents');
-    }
-
     // Hash password
     const passwordHash = await bcrypt.hash(dto.password, BCRYPT_ROUNDS);
 
-    // Create provider
+    // Create provider first to get an ID for the filename
     const provider = this.providerRepo.create({
       email: dto.email.toLowerCase().trim(),
       password_hash: passwordHash,
@@ -90,10 +88,37 @@ export class ProviderService {
       hourly_rate: dto.hourly_rate || null,
       status: ProviderStatus.PENDING,
       availability: ProviderAvailability.OFFLINE,
-      id_document_url: documentUrl,
     });
 
     const savedProvider = await this.providerRepo.save(provider);
+
+    // Upload ID document with provider name and ID in filename
+    let documentUrl: string | null = null;
+    if (documentFile) {
+      const validation = storageService.validateFile(documentFile);
+      if (!validation.valid) {
+        throw ApiError.badRequest(validation.error!, [
+          { field: 'id_document', message: validation.error! },
+        ]);
+      }
+
+      // Rename file: ProviderName_ProviderID.ext
+      const safeName = dto.full_name.trim().replace(/[^a-zA-Z0-9]/g, '_');
+      const shortId = savedProvider.id.substring(0, 8);
+      const ext = documentFile.originalname.split('.').pop() || 'pdf';
+      const renamedFile = {
+        ...documentFile,
+        originalname: `${safeName}_${shortId}.${ext}`,
+      };
+
+      documentUrl = await storageService.uploadFile(renamedFile, 'id-documents');
+    }
+
+    // Update provider with document URL
+    if (documentUrl) {
+      savedProvider.id_document_url = documentUrl;
+      await this.providerRepo.save(savedProvider);
+    }
 
     // Create provider-category associations
     const providerCategories = dto.category_ids.map((categoryId) =>
@@ -106,8 +131,21 @@ export class ProviderService {
 
     return {
       providerId: savedProvider.id,
-      message: 'Registration submitted. Your profile is pending admin verification.',
+      message: 'Registration submitted successfully! Your application is pending admin verification.',
     };
+  }
+
+  /**
+   * Check if a user already has a provider application.
+   */
+  async checkExistingApplication(email: string): Promise<{ exists: boolean; status?: string }> {
+    const existing = await this.providerRepo.findOne({
+      where: { email: email.toLowerCase().trim() },
+    });
+    if (existing) {
+      return { exists: true, status: existing.status };
+    }
+    return { exists: false };
   }
 
   /**
@@ -115,124 +153,73 @@ export class ProviderService {
    */
   async getProfile(providerId: string): Promise<ServiceProvider> {
     const provider = await this.providerRepo.findOne({ where: { id: providerId } });
-    if (!provider) {
-      throw ApiError.notFound('Provider');
-    }
+    if (!provider) throw ApiError.notFound('Provider');
     return provider;
   }
 
   /**
-   * Update provider profile. Changes reflect within 30 seconds via cache invalidation.
+   * Update provider profile.
    */
   async updateProfile(
     providerId: string,
     updates: Partial<Pick<ServiceProvider, 'full_name' | 'phone' | 'address' | 'hourly_rate' | 'service_radius_km'>>
   ): Promise<ServiceProvider> {
     const provider = await this.providerRepo.findOne({ where: { id: providerId } });
-    if (!provider) {
-      throw ApiError.notFound('Provider');
-    }
-
+    if (!provider) throw ApiError.notFound('Provider');
     Object.assign(provider, updates);
-    const updated = await this.providerRepo.save(provider);
-
-    // Invalidate search cache to reflect changes within 30 seconds
-    // The search cache TTL is 30s, so changes propagate naturally
-    return updated;
+    return this.providerRepo.save(provider);
   }
 
   /**
-   * Toggle provider availability (online/offline).
-   * Updates search visibility immediately.
+   * Toggle availability (online/offline).
    */
   async toggleAvailability(
     providerId: string,
     availability: ProviderAvailability
   ): Promise<{ availability: ProviderAvailability }> {
     const provider = await this.providerRepo.findOne({ where: { id: providerId } });
-    if (!provider) {
-      throw ApiError.notFound('Provider');
-    }
-
+    if (!provider) throw ApiError.notFound('Provider');
     if (provider.status !== ProviderStatus.ACTIVE) {
       throw ApiError.badRequest('Only active providers can change availability');
     }
-
     provider.availability = availability;
     await this.providerRepo.save(provider);
-
     return { availability: provider.availability };
   }
 
   /**
-   * Update provider location (stored in Redis for real-time tracking).
+   * Update provider location.
    */
-  async updateLocation(
-    providerId: string,
-    latitude: number,
-    longitude: number
-  ): Promise<void> {
-    const provider = await this.providerRepo.findOne({ where: { id: providerId } });
-    if (!provider) {
-      throw ApiError.notFound('Provider');
-    }
-
-    // Store in Redis for real-time position tracking
+  async updateLocation(providerId: string, latitude: number, longitude: number): Promise<void> {
     await redisService.setProviderLocation(providerId, latitude, longitude);
-
-    // Also update the persistent PostGIS location
-    await this.providerRepo
-      .createQueryBuilder()
-      .update(ServiceProvider)
-      .set({
-        location: () => `ST_SetSRID(ST_MakePoint(${longitude}, ${latitude}), 4326)`,
-      })
-      .where('id = :id', { id: providerId })
-      .execute();
   }
 
   /**
-   * Admin: Approve provider registration.
+   * Admin: Approve provider.
    */
   async approveProvider(providerId: string): Promise<void> {
     const provider = await this.providerRepo.findOne({ where: { id: providerId } });
-    if (!provider) {
-      throw ApiError.notFound('Provider');
-    }
-
+    if (!provider) throw ApiError.notFound('Provider');
     if (provider.status !== ProviderStatus.PENDING) {
       throw ApiError.badRequest('Only pending providers can be approved');
     }
-
     provider.status = ProviderStatus.ACTIVE;
     await this.providerRepo.save(provider);
-
-    // Send approval notification email
-    emailService.sendVerificationEmail(provider.email, '').catch(() => {});
   }
 
   /**
-   * Admin: Reject provider registration with reason.
+   * Admin: Reject provider.
    */
   async rejectProvider(providerId: string, reason: string): Promise<void> {
     const provider = await this.providerRepo.findOne({ where: { id: providerId } });
-    if (!provider) {
-      throw ApiError.notFound('Provider');
-    }
-
-    if (provider.status !== ProviderStatus.PENDING) {
-      throw ApiError.badRequest('Only pending providers can be rejected');
-    }
-
+    if (!provider) throw ApiError.notFound('Provider');
     provider.status = ProviderStatus.DEACTIVATED;
     await this.providerRepo.save(provider);
-
-    // TODO: Send rejection notification with reason
-    console.log(`[DEV] Provider ${provider.email} rejected. Reason: ${reason}`);
+    console.log(`Provider ${provider.email} rejected. Reason: ${reason}`);
   }
 
   /**
-   * Get pending providers for admin review.
+   * Get pending providers.
    */
   async getPendingProviders(): Promise<ServiceProvider[]> {
     return this.providerRepo.find({

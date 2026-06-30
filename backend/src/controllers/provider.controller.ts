@@ -12,7 +12,20 @@ export class ProviderController {
    */
   async register(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { email, password, full_name, phone, address, category_ids, experience_years, service_radius_km, hourly_rate } = req.body;
+      let { email, password, full_name, phone, address, category_ids, experience_years, service_radius_km, hourly_rate } = req.body;
+
+      // FormData sends category_ids as repeated fields — normalize to array
+      if (typeof category_ids === 'string') {
+        category_ids = [category_ids];
+      }
+      if (!Array.isArray(category_ids)) {
+        category_ids = [];
+      }
+
+      // Parse numeric values from FormData (they come as strings)
+      experience_years = parseInt(experience_years, 10) || 0;
+      service_radius_km = parseInt(service_radius_km, 10) || 10;
+      hourly_rate = hourly_rate ? parseFloat(hourly_rate) : undefined;
 
       // Input validation
       const errors: ValidationFieldError[] = [];
@@ -25,14 +38,14 @@ export class ProviderController {
       if (!phone) errors.push({ field: 'phone', message: 'Phone is required' });
       if (!address) errors.push({ field: 'address', message: 'Address is required' });
 
-      if (experience_years === undefined || experience_years < 0 || experience_years > 50) {
+      if (experience_years < 0 || experience_years > 50) {
         errors.push({ field: 'experience_years', message: 'Experience must be 0-50 years' });
       }
-      if (!service_radius_km || service_radius_km < 1 || service_radius_km > 50) {
+      if (service_radius_km < 1 || service_radius_km > 50) {
         errors.push({ field: 'service_radius_km', message: 'Service radius must be 1-50 km' });
       }
 
-      if (!category_ids || !Array.isArray(category_ids) || category_ids.length === 0) {
+      if (category_ids.length === 0) {
         errors.push({ field: 'category_ids', message: 'At least 1 service category is required' });
       } else if (category_ids.length > 5) {
         errors.push({ field: 'category_ids', message: 'Maximum 5 categories allowed' });
