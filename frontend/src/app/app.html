@@ -33,8 +33,14 @@
       </button>
     </mat-menu>
   } @else {
-    <a mat-stroked-button routerLink="/auth/login" class="toolbar-btn">Sign In</a>
-    <a mat-flat-button routerLink="/auth/register" class="toolbar-btn btn-action">Sign Up</a>
+    @if (isOnRegisterPage) {
+      <a mat-stroked-button routerLink="/auth/login" class="toolbar-btn">Sign In</a>
+    } @else if (isOnLoginPage) {
+      <a mat-flat-button routerLink="/auth/register" class="toolbar-btn btn-action">Sign Up</a>
+    } @else {
+      <a mat-stroked-button routerLink="/auth/login" class="toolbar-btn">Sign In</a>
+      <a mat-flat-button routerLink="/auth/register" class="toolbar-btn btn-action">Sign Up</a>
+    }
   }
 </mat-toolbar>
 

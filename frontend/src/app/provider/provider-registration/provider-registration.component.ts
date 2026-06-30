@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -13,6 +13,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatChipsModule } from '@angular/material/chips';
 import { environment } from '../../../environments/environment';
+import { AuthService } from '../../auth/services/auth.service';
 
 @Component({
   selector: 'app-provider-registration',
@@ -46,7 +47,8 @@ import { environment } from '../../../environments/environment';
         <mat-card class="card-elevated">
           <mat-card-content>
             <mat-stepper [linear]="true" #stepper>
-              <!-- Step 1: Personal Info -->
+              <!-- Step 1: Personal Info (only for non-logged-in users) -->
+              @if (!isLoggedIn) {
               <mat-step [stepControl]="personalForm">
                 <ng-template matStepLabel>Personal Info</ng-template>
                 <form [formGroup]="personalForm">
@@ -81,6 +83,7 @@ import { environment } from '../../../environments/environment';
                   </div>
                 </form>
               </mat-step>
+              }
 
               <!-- Step 2: Service Details -->
               <mat-step [stepControl]="serviceForm">
@@ -171,7 +174,7 @@ import { environment } from '../../../environments/environment';
     .file-error { color: #d32f2f; font-size: 12px; margin-top: 4px; }
   `]
 })
-export class ProviderRegistrationComponent {
+export class ProviderRegistrationComponent implements OnInit {
   personalForm: FormGroup;
   serviceForm: FormGroup;
   loading = false;
@@ -181,12 +184,16 @@ export class ProviderRegistrationComponent {
   selectedFileName = '';
   fileError = '';
   categories: { id: string; name: string }[] = [];
+  isLoggedIn = false;
+  userEmail = '';
+  userFullName = '';
+  userPhone = '';
 
-  constructor(private fb: FormBuilder, private http: HttpClient, private router: Router) {
+  constructor(private fb: FormBuilder, private http: HttpClient, private router: Router, private authService: AuthService) {
     this.personalForm = this.fb.group({
       full_name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
       email: ['', [Validators.required, Validators.email]],
-      phone: ['', [Validators.required, Validators.pattern(/^\+[1-9]\d{1,14}$/)]],
+      phone: ['', [Validators.required, Validators.pattern(/^(\+91[6-9]\d{9}|[6-9]\d{9})$/)]],
       password: ['', [Validators.required, Validators.minLength(8)]],
     });
 
@@ -199,6 +206,28 @@ export class ProviderRegistrationComponent {
     });
 
     this.loadCategories();
+  }
+
+  ngOnInit(): void {
+    // If user is logged in, prefill their details and skip personal info step
+    this.isLoggedIn = this.authService.isAuthenticated();
+    if (this.isLoggedIn) {
+      const token = this.authService.getAccessToken();
+      if (token) {
+        try {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          this.userEmail = payload.email || '';
+          this.userFullName = payload.email?.split('@')[0] || '';
+          // Prefill the form so it passes validation
+          this.personalForm.patchValue({
+            full_name: this.userFullName,
+            email: this.userEmail,
+            phone: '0000000000',
+            password: 'prefilled123',
+          });
+        } catch {}
+      }
+    }
   }
 
   loadCategories(): void {

@@ -49,11 +49,15 @@ export function validateEmail(email: string): boolean {
 }
 
 /**
- * Validate E.164 phone format (e.g., +1234567890).
+ * Validate Indian mobile number format.
+ * Accepts: +91XXXXXXXXXX (10 digits after +91) or 10 digit number starting with 6-9
  */
 export function validatePhone(phone: string): boolean {
-  const phoneRegex = /^\+[1-9]\d{1,14}$/;
-  return phoneRegex.test(phone);
+  // +91 followed by 10 digits starting with 6-9
+  const withCountryCode = /^\+91[6-9]\d{9}$/;
+  // Just 10 digits starting with 6-9
+  const withoutCode = /^[6-9]\d{9}$/;
+  return withCountryCode.test(phone) || withoutCode.test(phone);
 }
 
 /**
@@ -89,9 +93,9 @@ export function validateRegisterInput(req: Request, _res: Response, next: NextFu
     errors.push({ field: 'full_name', message: 'Full name must be at most 100 characters', value: full_name });
   }
 
-  // Validate phone (optional, E.164 format)
+  // Validate phone (optional, Indian mobile number)
   if (phone && !validatePhone(phone)) {
-    errors.push({ field: 'phone', message: 'Phone must be in E.164 format (e.g., +1234567890)', value: phone });
+    errors.push({ field: 'phone', message: 'Enter valid Indian mobile number (e.g., +919876543210 or 9876543210)', value: phone });
   }
 
   if (errors.length > 0) {

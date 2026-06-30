@@ -106,9 +106,9 @@ import { AuthService } from '../services/auth.service';
 
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Phone (optional)</mat-label>
-              <input matInput formControlName="phone" type="tel" placeholder="+1234567890" autocomplete="tel">
+              <input matInput formControlName="phone" type="tel" placeholder="+919876543210" autocomplete="tel">
               @if (registerForm.get('phone')?.hasError('pattern') && registerForm.get('phone')?.touched) {
-                <mat-error>Must be E.164 format (e.g., +1234567890)</mat-error>
+                <mat-error>Enter valid Indian mobile (e.g., +919876543210 or 9876543210)</mat-error>
               }
             </mat-form-field>
 
@@ -204,7 +204,7 @@ export class RegisterComponent {
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, this.passwordStrengthValidator]],
       confirmPassword: ['', [Validators.required]],
-      phone: ['', [Validators.pattern(/^\+[1-9]\d{1,14}$/)]],
+      phone: ['', [Validators.pattern(/^(\+91[6-9]\d{9}|[6-9]\d{9})$/)]],
       terms: [false]
     }, { validators: this.passwordMatchValidator });
   }
