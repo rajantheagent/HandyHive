@@ -159,6 +159,29 @@ export class AuthService {
   }
 
   /**
+   * Change password directly (verify current password, set new one).
+   */
+  async changePassword(email: string, currentPassword: string, newPassword: string): Promise<{ message: string }> {
+    const user = await this.userRepository.findOne({
+      where: { email: email.toLowerCase().trim() },
+    });
+
+    if (!user) {
+      throw ApiError.unauthorized('Invalid email or current password');
+    }
+
+    const isValid = await bcrypt.compare(currentPassword, user.password_hash);
+    if (!isValid) {
+      throw ApiError.unauthorized('Invalid email or current password');
+    }
+
+    user.password_hash = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
+    await this.userRepository.save(user);
+
+    return { message: 'Password changed successfully!' };
+  }
+
+  /**
    * Logout.
    */
   async logout(userId: string): Promise<void> {

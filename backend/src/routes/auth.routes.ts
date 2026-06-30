@@ -25,6 +25,11 @@ router.post('/auth/forgot-password', (req, res, next) => {
   authController.forgotPassword(req, res, next);
 });
 
+// POST /api/auth/change-password - Direct password change
+router.post('/auth/change-password', (req, res, next) => {
+  authController.changePassword(req, res, next);
+});
+
 // POST /api/auth/reset-password - Reset password with token
 router.post('/auth/reset-password', (req, res, next) => {
   authController.resetPassword(req, res, next);

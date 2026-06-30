@@ -38,33 +38,38 @@ export class AdminService {
    * Get admin dashboard metrics.
    */
   async getDashboardMetrics(): Promise<DashboardMetrics> {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    try {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
 
-    const [totalUsers, activeProviders, pendingVerifications] = await Promise.all([
-      this.userRepo.count(),
-      this.providerRepo.count({ where: { status: ProviderStatus.ACTIVE } }),
-      this.providerRepo.count({ where: { status: ProviderStatus.PENDING } }),
-    ]);
+      const [totalUsers, activeProviders, pendingVerifications] = await Promise.all([
+        this.userRepo.count(),
+        this.providerRepo.count({ where: { status: ProviderStatus.ACTIVE } }),
+        this.providerRepo.count({ where: { status: ProviderStatus.PENDING } }),
+      ]);
 
-    const dailyBookings = await this.bookingRepo
-      .createQueryBuilder('b')
-      .where('b.created_at >= :today', { today })
-      .getCount();
+      const dailyBookings = await this.bookingRepo
+        .createQueryBuilder('b')
+        .where('b.created_at >= :today', { today })
+        .getCount();
 
-    const revenueResult = await this.paymentRepo
-      .createQueryBuilder('p')
-      .select('SUM(p.platform_commission)', 'total')
-      .where('p.status = :status', { status: PaymentStatus.COMPLETED })
-      .getRawOne();
+      const revenueResult = await this.paymentRepo
+        .createQueryBuilder('p')
+        .select('SUM(p.platform_commission)', 'total')
+        .where('p.status = :status', { status: PaymentStatus.COMPLETED })
+        .getRawOne();
 
-    return {
-      totalUsers,
-      activeProviders,
-      dailyBookings,
-      totalRevenue: parseFloat(revenueResult?.total || '0'),
-      pendingVerifications,
-    };
+      return {
+        totalUsers,
+        activeProviders,
+        dailyBookings,
+        totalRevenue: parseFloat(revenueResult?.total || '0'),
+        pendingVerifications,
+      };
+    } catch (error) {
+      console.error('[Admin] Dashboard metrics failed:', error);
+      return { totalUsers: 0, activeProviders: 0, dailyBookings: 0, totalRevenue: 0, pendingVerifications: 0 };
+    }
   }
 
   /**

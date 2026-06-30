@@ -104,6 +104,29 @@ export class AuthController {
   }
 
   /**
+   * POST /api/auth/change-password
+   * Change password directly by verifying current password.
+   */
+  async changePassword(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { email, currentPassword, newPassword } = req.body;
+
+      if (!email || !currentPassword || !newPassword) {
+        throw ApiError.badRequest('Email, current password, and new password are required');
+      }
+
+      if (newPassword.length < 8) {
+        throw ApiError.badRequest('New password must be at least 8 characters');
+      }
+
+      const result = await authService.changePassword(email, currentPassword, newPassword);
+      res.status(200).json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
    * POST /api/auth/logout
    * Invalidate user session.
    */

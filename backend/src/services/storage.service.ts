@@ -2,7 +2,8 @@ import path from 'path';
 import fs from 'fs';
 import crypto from 'crypto';
 
-const UPLOAD_DIR = path.join(process.cwd(), 'uploads');
+// Configurable upload directory — set UPLOAD_DIR in .env for custom path
+const UPLOAD_DIR = process.env.UPLOAD_DIR || path.join(process.cwd(), 'uploads');
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'application/pdf'];
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 
