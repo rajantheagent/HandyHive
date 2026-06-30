@@ -43,7 +43,13 @@ import { AuthService } from '../../auth/services/auth.service';
         <div class="success-banner">{{ successMessage }}</div>
       }
 
-      @if (!successMessage) {
+      @if (applicationPending) {
+        <mat-card class="card-elevated" style="text-align:center; padding:32px;">
+          <mat-icon style="font-size:48px;width:48px;height:48px;color:#FFB800;">hourglass_top</mat-icon>
+          <h3>Application Already Submitted</h3>
+          <p style="color:#666;">Your provider application is currently <strong>{{ applicationStatus }}</strong>. Please wait for admin review.</p>
+        </mat-card>
+      } @else if (!successMessage) {
         <mat-card class="card-elevated">
           <mat-card-content>
             <mat-stepper [linear]="true" #stepper>
@@ -208,6 +214,9 @@ export class ProviderRegistrationComponent implements OnInit {
     this.loadCategories();
   }
 
+  applicationPending = false;
+  applicationStatus = '';
+
   ngOnInit(): void {
     // If user is logged in, prefill their details and skip personal info step
     this.isLoggedIn = this.authService.isAuthenticated();
@@ -222,8 +231,21 @@ export class ProviderRegistrationComponent implements OnInit {
           this.personalForm.patchValue({
             full_name: this.userFullName,
             email: this.userEmail,
-            phone: '0000000000',
-            password: 'prefilled123',
+            phone: '9999999999',
+            password: 'prefilled123!A',
+          });
+
+          // Check if already applied
+          this.http.get<any>(`${environment.apiUrl}/providers/check-status`, {
+            params: { email: this.userEmail }
+          }).subscribe({
+            next: (result) => {
+              if (result.exists) {
+                this.applicationPending = true;
+                this.applicationStatus = result.status;
+              }
+            },
+            error: () => {}
           });
         } catch {}
       }
