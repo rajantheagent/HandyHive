@@ -85,7 +85,7 @@ export class BookingService {
       reference_code: referenceCode,
       user_id: dto.userId,
       provider_id: dto.providerId,
-      category_id: dto.categoryId,
+      category_id: dto.categoryId || null,
       address: dto.address || null,
       description: dto.description || null,
       status: BookingStatus.REQUESTED,

@@ -47,12 +47,12 @@ export class Booking {
   @JoinColumn({ name: 'provider_id' })
   provider!: ServiceProvider;
 
-  @Column({ type: 'uuid' })
-  category_id!: string;
+  @Column({ type: 'uuid', nullable: true })
+  category_id!: string | null;
 
-  @ManyToOne(() => ServiceCategory, { onDelete: 'CASCADE' })
+  @ManyToOne(() => ServiceCategory, { onDelete: 'CASCADE', nullable: true })
   @JoinColumn({ name: 'category_id' })
-  category!: ServiceCategory;
+  category!: ServiceCategory | null;
 
   @Index({ spatial: true })
   @Column({ type: 'geography', spatialFeatureType: 'Point', srid: 4326, nullable: true })

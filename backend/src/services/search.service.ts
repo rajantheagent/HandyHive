@@ -30,6 +30,7 @@ export interface ProviderSummary {
   distance_km: number;
   eta_minutes: number;
   availability: string;
+  categories: string[];
 }
 
 export interface SearchResult {
@@ -81,20 +82,34 @@ export class SearchService {
       const total = await query.getCount();
       const providers = await query.skip(offset).take(limit).getMany();
 
-      // Map to summary with simulated distance (since most won't have GPS)
-      const results: ProviderSummary[] = providers.map((sp, idx) => ({
-        id: sp.id,
-        full_name: sp.full_name,
-        email: sp.email,
-        phone: sp.phone,
-        hourly_rate: sp.hourly_rate ? parseFloat(String(sp.hourly_rate)) : null,
-        average_rating: sp.average_rating ? parseFloat(String(sp.average_rating)) : 0,
-        total_ratings: sp.total_ratings || 0,
-        total_bookings: sp.total_bookings || 0,
-        distance_km: parseFloat((1 + idx * 0.5).toFixed(1)), // Simulated until GPS is set
-        eta_minutes: Math.round((1 + idx * 0.5) * 3),
-        availability: sp.availability,
-      }));
+      // Map to summary with service categories
+      const results: ProviderSummary[] = [];
+      for (const sp of providers) {
+        // Get categories for this provider
+        let categories: string[] = [];
+        try {
+          const cats = await AppDataSource.query(
+            `SELECT sc.name FROM provider_categories pc JOIN service_categories sc ON sc.id = pc.category_id WHERE pc.provider_id = $1`,
+            [sp.id]
+          );
+          categories = cats.map((c: any) => c.name);
+        } catch {}
+
+        results.push({
+          id: sp.id,
+          full_name: sp.full_name,
+          email: sp.email,
+          phone: sp.phone,
+          hourly_rate: sp.hourly_rate ? parseFloat(String(sp.hourly_rate)) : null,
+          average_rating: sp.average_rating ? parseFloat(String(sp.average_rating)) : 0,
+          total_ratings: sp.total_ratings || 0,
+          total_bookings: sp.total_bookings || 0,
+          distance_km: parseFloat((1 + results.length * 0.5).toFixed(1)),
+          eta_minutes: Math.round((1 + results.length * 0.5) * 3),
+          availability: sp.availability,
+          categories,
+        });
+      }
 
       return { providers: results, total, radius_km: radiusKm };
 

@@ -19,6 +19,8 @@ interface ProviderResult {
   total_ratings: number;
   distance_km: number;
   eta_minutes: number;
+  availability: string;
+  categories: string[];
 }
 
 @Component({
@@ -82,13 +84,15 @@ interface ProviderResult {
                 <div class="provider-avatar">{{ provider.full_name.charAt(0) }}</div>
                 <div class="provider-info">
                   <strong>{{ provider.full_name }}</strong>
+                  <div class="provider-services" *ngIf="provider.categories?.length">{{ provider.categories.join(', ') }}</div>
                   <div class="provider-meta">
                     <span>⭐ {{ provider.average_rating | number:'1.1-1' }}</span>
                     <span>📍 {{ provider.distance_km }} km</span>
-                    @if (provider.hourly_rate) { <span>R{{ provider.hourly_rate }}/hr</span> }
+                    <span *ngIf="provider.hourly_rate">R{{ provider.hourly_rate }}/hr</span>
+                    <span class="avail-badge" [class.online]="provider.availability === 'online'">{{ provider.availability }}</span>
                   </div>
                 </div>
-                <a mat-flat-button class="btn-action book-btn" routerLink="/booking/request" [queryParams]="{providerId: provider.id}">Book</a>
+                <a mat-flat-button class="btn-action book-btn" routerLink="/booking/request" [queryParams]="{providerId: provider.id, categoryId: provider.categories?.[0] || ''}">Book</a>
               </div>
             }
           } @else {
@@ -128,7 +132,10 @@ interface ProviderResult {
     .provider-avatar { width: 38px; height: 38px; border-radius: 50%; background: #06C167; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0; }
     .provider-info { flex: 1; }
     .provider-info strong { font-size: 0.9rem; }
-    .provider-meta { display: flex; gap: 8px; font-size: 0.75rem; color: #666; margin-top: 2px; }
+    .provider-services { font-size: 0.75rem; color: #06C167; font-weight: 500; margin-top: 2px; }
+    .provider-meta { display: flex; gap: 8px; font-size: 0.75rem; color: #666; margin-top: 2px; flex-wrap: wrap; }
+    .avail-badge { padding: 1px 6px; border-radius: 4px; background: #f5f5f5; font-size: 0.65rem; }
+    .avail-badge.online { background: #e8f5e9; color: #06C167; }
     .book-btn { border-radius: 8px !important; font-size: 0.78rem !important; }
   `]
 })

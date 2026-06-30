@@ -15,7 +15,6 @@ export class BookingController {
       const { providerId, categoryId, latitude, longitude, address, description, scheduledAt, estimatedDurationMinutes } = req.body;
 
       if (!providerId) throw ApiError.badRequest('Provider ID is required');
-      if (!categoryId) throw ApiError.badRequest('Category ID is required');
 
       const booking = await bookingService.createRequest({
         userId: payload.userId,
