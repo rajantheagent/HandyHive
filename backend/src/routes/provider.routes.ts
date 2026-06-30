@@ -2,6 +2,8 @@ import { Router } from 'express';
 import multer from 'multer';
 import { providerController } from '../controllers/provider.controller';
 import { authMiddleware } from '../middleware/auth.middleware';
+import { AppDataSource } from '../config/data-source';
+import { ServiceProvider } from '../entities/ServiceProvider';
 
 const router = Router();
 
@@ -16,23 +18,14 @@ router.post('/providers/register', upload.single('id_document'), (req, res, next
   providerController.register(req, res, next);
 });
 
-// Check application status by email (lightweight query)
+// Check application status by email (fast direct query)
 router.get('/providers/check-status', async (req, res) => {
   try {
     const email = req.query.email as string;
-    if (!email) {
-      res.status(200).json({ exists: false });
-      return;
-    }
-    const { AppDataSource } = require('../config/data-source');
-    const { ServiceProvider } = require('../entities/ServiceProvider');
+    if (!email) { res.status(200).json({ exists: false }); return; }
     const repo = AppDataSource.getRepository(ServiceProvider);
     const provider = await repo.findOne({ where: { email: email.toLowerCase().trim() }, select: ['id', 'status'] });
-    if (provider) {
-      res.status(200).json({ exists: true, status: provider.status });
-    } else {
-      res.status(200).json({ exists: false });
-    }
+    res.status(200).json(provider ? { exists: true, status: provider.status } : { exists: false });
   } catch {
     res.status(200).json({ exists: false });
   }

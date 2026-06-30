@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -14,9 +15,10 @@ import { environment } from '../../../environments/environment';
 @Component({
   selector: 'app-dispute-resolution',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatCardModule, MatButtonModule, MatIconModule, MatSelectModule, MatFormFieldModule, MatInputModule, MatProgressSpinnerModule],
+  imports: [CommonModule, FormsModule, RouterLink, MatCardModule, MatButtonModule, MatIconModule, MatSelectModule, MatFormFieldModule, MatInputModule, MatProgressSpinnerModule],
   template: `
     <div class="disputes-container">
+      <a routerLink="/admin" style="color:#06C167;text-decoration:none;font-size:0.85rem;display:inline-block;margin-bottom:16px">← Back to Admin Dashboard</a>
       <h2>Dispute Resolution</h2>
 
       @if (disputes.length === 0) {

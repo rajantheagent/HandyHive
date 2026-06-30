@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { catchError, switchMap, throwError, timeout } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 
-const PUBLIC_URLS = ['/auth/login', '/auth/register', '/auth/forgot-password', '/auth/verify-email', '/auth/change-password'];
+const PUBLIC_URLS = ['/auth/login', '/auth/register', '/auth/forgot-password', '/auth/verify-email', '/auth/change-password', '/providers/check-status', '/categories'];
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
