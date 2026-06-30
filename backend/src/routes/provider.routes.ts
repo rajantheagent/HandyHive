@@ -16,19 +16,25 @@ router.post('/providers/register', upload.single('id_document'), (req, res, next
   providerController.register(req, res, next);
 });
 
-// Check application status by email
-router.get('/providers/check-status', async (req, res, next) => {
+// Check application status by email (lightweight query)
+router.get('/providers/check-status', async (req, res) => {
   try {
     const email = req.query.email as string;
     if (!email) {
-      res.status(400).json({ error: 'Email is required' });
+      res.status(200).json({ exists: false });
       return;
     }
-    const { providerService } = require('../services/provider.service');
-    const result = await providerService.checkExistingApplication(email);
-    res.status(200).json(result);
-  } catch (error) {
-    next(error);
+    const { AppDataSource } = require('../config/data-source');
+    const { ServiceProvider } = require('../entities/ServiceProvider');
+    const repo = AppDataSource.getRepository(ServiceProvider);
+    const provider = await repo.findOne({ where: { email: email.toLowerCase().trim() }, select: ['id', 'status'] });
+    if (provider) {
+      res.status(200).json({ exists: true, status: provider.status });
+    } else {
+      res.status(200).json({ exists: false });
+    }
+  } catch {
+    res.status(200).json({ exists: false });
   }
 });
 

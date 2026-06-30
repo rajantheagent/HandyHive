@@ -1,9 +1,14 @@
 import { Routes } from '@angular/router';
+import { AdminDashboardComponent } from './admin-dashboard/admin-dashboard.component';
 
 export const ADMIN_ROUTES: Routes = [
   {
+    path: '',
+    component: AdminDashboardComponent
+  },
+  {
     path: 'dashboard',
-    loadComponent: () => import('./admin-dashboard/admin-dashboard.component').then(m => m.AdminDashboardComponent)
+    component: AdminDashboardComponent
   },
   {
     path: 'users',
@@ -20,10 +25,5 @@ export const ADMIN_ROUTES: Routes = [
   {
     path: 'reports',
     loadComponent: () => import('./report-export/report-export.component').then(m => m.ReportExportComponent)
-  },
-  {
-    path: '',
-    redirectTo: 'dashboard',
-    pathMatch: 'full'
   }
 ];
