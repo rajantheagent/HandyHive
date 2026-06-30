@@ -50,10 +50,6 @@ export class AuthService {
     return this.http.post<{ message: string }>(`${this.apiUrl}/auth/forgot-password`, { email });
   }
 
-  resetPassword(token: string, newPassword: string): Observable<{ message: string }> {
-    return this.http.post<{ message: string }>(`${this.apiUrl}/auth/reset-password`, { token, newPassword });
-  }
-
   refreshToken(): Observable<LoginResponse> {
     const refreshToken = this.getRefreshToken();
     return this.http.post<LoginResponse>(`${this.apiUrl}/auth/refresh`, { refreshToken }).pipe(
@@ -63,22 +59,8 @@ export class AuthService {
     );
   }
 
-  loginWithOAuth(provider: 'google' | 'facebook'): void {
-    window.location.href = `${this.apiUrl}/auth/${provider}`;
-  }
-
-  handleOAuthCallback(accessToken: string, refreshToken: string): void {
-    this.storeTokens(accessToken, refreshToken);
-    this.isAuthenticatedSubject.next(true);
-  }
-
   logout(): void {
-    const token = this.getAccessToken();
-    if (token) {
-      this.http.post(`${this.apiUrl}/auth/logout`, {}).subscribe({
-        error: () => {} // Ignore errors during logout
-      });
-    }
+    this.http.post(`${this.apiUrl}/auth/logout`, {}).subscribe({ error: () => {} });
     this.clearTokens();
     this.isAuthenticatedSubject.next(false);
     this.router.navigate(['/auth/login']);
@@ -109,7 +91,6 @@ export class AuthService {
   private hasValidToken(): boolean {
     const token = this.getAccessToken();
     if (!token) return false;
-
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
       return payload.exp * 1000 > Date.now();

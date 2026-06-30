@@ -20,26 +20,6 @@ export class AuthController {
   }
 
   /**
-   * GET /api/auth/verify-email?token=xxx
-   * Verify user email with single-use token.
-   */
-  async verifyEmail(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const { token } = req.query;
-
-      if (!token || typeof token !== 'string') {
-        res.status(400).json({ message: 'Verification token is required' });
-        return;
-      }
-
-      const result = await authService.verifyEmail(token);
-      res.status(200).json(result);
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  /**
    * POST /api/auth/login
    * Authenticate user with email and password.
    */

@@ -14,15 +14,9 @@ import { AuthService } from '../services/auth.service';
   selector: 'app-login',
   standalone: true,
   imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    RouterLink,
-    MatCardModule,
-    MatInputModule,
-    MatButtonModule,
-    MatFormFieldModule,
-    MatIconModule,
-    MatProgressSpinnerModule
+    CommonModule, ReactiveFormsModule, RouterLink,
+    MatCardModule, MatInputModule, MatButtonModule,
+    MatFormFieldModule, MatIconModule, MatProgressSpinnerModule
   ],
   template: `
     <div class="auth-container">
@@ -31,12 +25,10 @@ import { AuthService } from '../services/auth.service';
           <mat-card-title>Sign In</mat-card-title>
           <mat-card-subtitle>Welcome back to HandyHive</mat-card-subtitle>
         </mat-card-header>
-
         <mat-card-content>
           @if (errorMessage) {
             <div class="error-banner">{{ errorMessage }}</div>
           }
-
           <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Email</mat-label>
@@ -44,11 +36,7 @@ import { AuthService } from '../services/auth.service';
               @if (loginForm.get('email')?.hasError('required') && loginForm.get('email')?.touched) {
                 <mat-error>Email is required</mat-error>
               }
-              @if (loginForm.get('email')?.hasError('email') && loginForm.get('email')?.touched) {
-                <mat-error>Must be a valid email</mat-error>
-              }
             </mat-form-field>
-
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Password</mat-label>
               <input matInput formControlName="password" [type]="hidePassword ? 'password' : 'text'" autocomplete="current-password">
@@ -59,35 +47,13 @@ import { AuthService } from '../services/auth.service';
                 <mat-error>Password is required</mat-error>
               }
             </mat-form-field>
-
             <div class="forgot-link">
               <a routerLink="/auth/forgot-password">Forgot password?</a>
             </div>
-
             <button mat-flat-button class="btn-action full-width submit-btn" type="submit" [disabled]="loading || loginForm.invalid">
-              @if (loading) {
-                <mat-spinner diameter="20"></mat-spinner>
-              } @else {
-                Sign In
-              }
+              @if (loading) { <mat-spinner diameter="20"></mat-spinner> } @else { Sign In }
             </button>
           </form>
-
-          <div class="divider">
-            <span>or continue with</span>
-          </div>
-
-          <div class="oauth-buttons">
-            <button mat-stroked-button class="full-width oauth-btn" (click)="loginWithGoogle()">
-              <mat-icon>login</mat-icon>
-              Google
-            </button>
-            <button mat-stroked-button class="full-width oauth-btn" (click)="loginWithFacebook()">
-              <mat-icon>facebook</mat-icon>
-              Facebook
-            </button>
-          </div>
-
           <div class="register-link">
             Don't have an account? <a routerLink="/auth/register">Sign up</a>
           </div>
@@ -96,77 +62,15 @@ import { AuthService } from '../services/auth.service';
     </div>
   `,
   styles: [`
-    .auth-container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 80vh;
-      padding: 16px;
-    }
-    .auth-card {
-      width: 100%;
-      max-width: 400px;
-      padding: 24px;
-    }
-    .full-width {
-      width: 100%;
-    }
-    .submit-btn {
-      margin-top: 8px;
-      height: 48px;
-      font-size: 16px;
-    }
-    .error-banner {
-      background-color: #fdecea;
-      color: #d32f2f;
-      padding: 12px;
-      border-radius: 8px;
-      margin-bottom: 16px;
-      font-size: 14px;
-    }
-    .forgot-link {
-      text-align: right;
-      margin-bottom: 16px;
-    }
-    .forgot-link a {
-      color: #06C167;
-      text-decoration: none;
-      font-size: 14px;
-    }
-    .divider {
-      display: flex;
-      align-items: center;
-      margin: 24px 0;
-      color: #999;
-      font-size: 14px;
-    }
-    .divider::before, .divider::after {
-      content: '';
-      flex: 1;
-      border-bottom: 1px solid #e0e0e0;
-    }
-    .divider span {
-      padding: 0 12px;
-    }
-    .oauth-buttons {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    .oauth-btn {
-      height: 44px;
-    }
-    .register-link {
-      text-align: center;
-      margin-top: 24px;
-      font-size: 14px;
-      color: #666;
-    }
-    .register-link a {
-      color: #06C167;
-      text-decoration: none;
-      font-weight: 500;
-    }
+    .auth-container { display: flex; justify-content: center; align-items: center; min-height: 80vh; padding: 16px; }
+    .auth-card { width: 100%; max-width: 400px; padding: 24px; }
+    .full-width { width: 100%; }
+    .submit-btn { margin-top: 8px; height: 48px; font-size: 16px; }
+    .error-banner { background: #fdecea; color: #d32f2f; padding: 12px; border-radius: 8px; margin-bottom: 16px; font-size: 14px; }
+    .forgot-link { text-align: right; margin-bottom: 16px; }
+    .forgot-link a { color: #06C167; text-decoration: none; font-size: 14px; }
+    .register-link { text-align: center; margin-top: 24px; font-size: 14px; color: #666; }
+    .register-link a { color: #06C167; text-decoration: none; font-weight: 500; }
   `]
 })
 export class LoginComponent {
@@ -189,14 +93,14 @@ export class LoginComponent {
 
   onSubmit(): void {
     if (this.loginForm.invalid) return;
-
     this.loading = true;
     this.errorMessage = '';
 
     const { email, password } = this.loginForm.value;
     this.authService.login(email, password).subscribe({
       next: () => {
-        const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/map';
+        this.loading = false;
+        const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
         this.router.navigateByUrl(returnUrl);
       },
       error: (err) => {
@@ -204,13 +108,5 @@ export class LoginComponent {
         this.errorMessage = err.error?.message || 'Invalid email or password';
       }
     });
-  }
-
-  loginWithGoogle(): void {
-    this.authService.loginWithOAuth('google');
-  }
-
-  loginWithFacebook(): void {
-    this.authService.loginWithOAuth('facebook');
   }
 }

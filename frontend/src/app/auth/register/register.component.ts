@@ -254,6 +254,10 @@ export class RegisterComponent {
       next: (response) => {
         this.loading = false;
         this.successMessage = response.message;
+        // Redirect to login after 2 seconds
+        setTimeout(() => {
+          this.router.navigate(['/auth/login']);
+        }, 2000);
       },
       error: (err) => {
         this.loading = false;
