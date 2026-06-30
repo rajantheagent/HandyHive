@@ -1,24 +1,64 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { RouterOutlet, RouterLink } from '@angular/router';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatDividerModule } from '@angular/material/divider';
 import { NotificationBellComponent } from './shared/notification-bell/notification-bell.component';
+import { AuthService } from './auth/services/auth.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
   imports: [
-    RouterOutlet,
-    RouterLink,
-    MatToolbarModule,
-    MatButtonModule,
-    MatIconModule,
+    CommonModule, RouterOutlet, RouterLink,
+    MatToolbarModule, MatButtonModule, MatIconModule,
+    MatMenuModule, MatDividerModule,
     NotificationBellComponent
   ],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
-export class App {
+export class App implements OnInit {
   title = 'HandyHive';
+  isLoggedIn = false;
+  isAdmin = false;
+  userName = '';
+  userInitial = '';
+
+  constructor(private authService: AuthService) {}
+
+  ngOnInit(): void {
+    this.authService.isAuthenticated$.subscribe(isAuth => {
+      this.isLoggedIn = isAuth;
+      if (isAuth) {
+        this.loadUserInfo();
+      } else {
+        this.userName = '';
+        this.userInitial = '';
+        this.isAdmin = false;
+      }
+    });
+  }
+
+  logout(): void {
+    this.authService.logout();
+  }
+
+  private loadUserInfo(): void {
+    const token = this.authService.getAccessToken();
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        this.userName = payload.email?.split('@')[0] || 'User';
+        this.userInitial = this.userName.charAt(0).toUpperCase();
+        this.isAdmin = payload.role === 'admin';
+      } catch {
+        this.userName = 'User';
+        this.userInitial = 'U';
+      }
+    }
+  }
 }

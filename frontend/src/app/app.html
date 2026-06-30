@@ -3,10 +3,39 @@
     <span class="brand-name">Handy<span class="brand-accent">Hive</span></span>
   </a>
   <span class="toolbar-spacer"></span>
-  <app-notification-bell></app-notification-bell>
-  <button mat-icon-button aria-label="Account" routerLink="/auth/login">
-    <mat-icon>account_circle</mat-icon>
-  </button>
+
+  @if (isLoggedIn) {
+    <app-notification-bell></app-notification-bell>
+    <button mat-button [matMenuTriggerFor]="userMenu" class="user-menu-btn">
+      <div class="user-avatar">{{ userInitial }}</div>
+      <span class="user-name">{{ userName }}</span>
+      <mat-icon>arrow_drop_down</mat-icon>
+    </button>
+    <mat-menu #userMenu="matMenu">
+      <button mat-menu-item routerLink="/dashboard">
+        <mat-icon>dashboard</mat-icon> Dashboard
+      </button>
+      <button mat-menu-item routerLink="/booking/history">
+        <mat-icon>history</mat-icon> My Bookings
+      </button>
+      <button mat-menu-item routerLink="/map">
+        <mat-icon>map</mat-icon> Find Services
+      </button>
+      @if (isAdmin) {
+        <mat-divider></mat-divider>
+        <button mat-menu-item routerLink="/admin">
+          <mat-icon>admin_panel_settings</mat-icon> Admin Panel
+        </button>
+      }
+      <mat-divider></mat-divider>
+      <button mat-menu-item (click)="logout()">
+        <mat-icon>logout</mat-icon> Sign Out
+      </button>
+    </mat-menu>
+  } @else {
+    <a mat-stroked-button routerLink="/auth/login" class="toolbar-btn">Sign In</a>
+    <a mat-flat-button routerLink="/auth/register" class="toolbar-btn btn-action">Sign Up</a>
+  }
 </mat-toolbar>
 
 <main class="app-content">

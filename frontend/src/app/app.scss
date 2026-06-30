@@ -6,29 +6,22 @@
   z-index: 100;
 }
 
-.brand-link {
-  text-decoration: none;
-  color: inherit;
-}
+.brand-link { text-decoration: none; color: inherit; }
+.brand-name { font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 1.4rem; letter-spacing: -0.5px; color: #fff; }
+.brand-accent { color: #06C167; font-weight: 800; }
 
-.brand-name {
-  font-family: 'Poppins', 'Inter', sans-serif;
-  font-weight: 700;
-  font-size: 1.4rem;
-  letter-spacing: -0.5px;
-  color: #ffffff;
-}
+.toolbar-spacer { flex: 1 1 auto; }
 
-.brand-accent {
-  color: #06C167;
-  font-weight: 800;
-}
+.toolbar-btn { margin-left: 8px !important; border-radius: 8px !important; font-size: 0.85rem !important; }
 
-.toolbar-spacer {
-  flex: 1 1 auto;
+.user-menu-btn {
+  display: flex !important; align-items: center; gap: 8px; color: #fff !important;
+  border-radius: 8px !important; padding: 4px 12px !important;
 }
+.user-avatar {
+  width: 32px; height: 32px; border-radius: 50%; background: #06C167; color: white;
+  display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem;
+}
+.user-name { font-size: 0.85rem; font-weight: 500; }
 
-.app-content {
-  width: 100%;
-  overflow-x: hidden;
-}
+.app-content { width: 100%; overflow-x: hidden; }
