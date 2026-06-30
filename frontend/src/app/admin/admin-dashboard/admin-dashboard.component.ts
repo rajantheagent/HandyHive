@@ -102,7 +102,11 @@ export class AdminDashboardComponent implements OnInit {
   ngOnInit(): void {
     this.http.get<any>(`${environment.apiUrl}/admin/dashboard`).subscribe({
       next: (data) => { this.metrics = data; this.loading = false; },
-      error: () => { this.loading = false; }
+      error: () => {
+        // Show empty metrics on error instead of loading forever
+        this.metrics = { totalUsers: 0, activeProviders: 0, dailyBookings: 0, totalRevenue: 0, pendingVerifications: 0 };
+        this.loading = false;
+      }
     });
   }
 }

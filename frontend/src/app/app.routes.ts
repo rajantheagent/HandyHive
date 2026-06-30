@@ -1,10 +1,25 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './auth/guards/auth.guard';
+import { inject } from '@angular/core';
+import { AuthService } from './auth/services/auth.service';
+import { Router } from '@angular/router';
+
+// Guard that shows landing for guests, redirects logged-in users to dashboard
+const landingGuard = () => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
+  if (authService.isAuthenticated()) {
+    router.navigate(['/dashboard']);
+    return false;
+  }
+  return true;
+};
 
 export const routes: Routes = [
   {
     path: '',
     loadComponent: () => import('./landing/landing.component').then(m => m.LandingComponent),
+    canActivate: [landingGuard],
     pathMatch: 'full'
   },
   {
