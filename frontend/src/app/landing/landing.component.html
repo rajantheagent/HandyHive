@@ -1,0 +1,180 @@
+<!-- Hero Banner -->
+<section class="hero">
+  <div class="hero-content">
+    <span class="hero-badge">🏆 #1 Home Services Platform</span>
+    <h1>Home Services,<br><span class="highlight">On Demand.</span></h1>
+    <p class="hero-subtitle">
+      Find trusted electricians, plumbers, carpenters & more — verified, rated, and
+      available right now. Book in seconds, track live on a map, pay only when satisfied.
+    </p>
+    <div class="hero-actions">
+      <a mat-flat-button class="btn-primary" routerLink="/auth/register">Get Started — It's Free</a>
+      <a mat-stroked-button class="btn-secondary" routerLink="/map">
+        <mat-icon>map</mat-icon> Explore Map
+      </a>
+    </div>
+  </div>
+  <div class="hero-visual">
+    <div class="phone-mockup">
+      <div class="mockup-screen">
+        <div class="mockup-map">
+          <span class="pin pin-1">📍</span>
+          <span class="pin pin-2">🔧</span>
+          <span class="pin pin-3">⚡</span>
+        </div>
+        <div class="mockup-card">
+          <div class="mockup-avatar">JK</div>
+          <div class="mockup-info">
+            <strong>James K.</strong>
+            <span>★★★★★ · 2.3km away</span>
+          </div>
+          <div class="mockup-book">Book</div>
+        </div>
+        <div class="mockup-card">
+          <div class="mockup-avatar" style="background:#FFB800">SM</div>
+          <div class="mockup-info">
+            <strong>Sarah M.</strong>
+            <span>★★★★☆ · 4.1km away</span>
+          </div>
+          <div class="mockup-book">Book</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Stats Bar -->
+<section class="stats-bar">
+  @for (stat of appStats; track stat.label) {
+    <div class="stat-item">
+      <span class="stat-value">{{ stat.value }}</span>
+      <span class="stat-label">{{ stat.label }}</span>
+    </div>
+  }
+</section>
+
+<!-- Services Section -->
+<section class="services">
+  <h2>What Can We Help You With?</h2>
+  <p class="section-sub">Tap any service to find a provider near you instantly</p>
+  <div class="services-grid">
+    @for (service of services; track service.name) {
+      <a class="service-card" routerLink="/map">
+        <span class="service-icon">{{ service.icon }}</span>
+        <h3>{{ service.name }}</h3>
+        <p>{{ service.description }}</p>
+        <span class="card-arrow"><mat-icon>arrow_forward</mat-icon></span>
+      </a>
+    }
+  </div>
+</section>
+
+<!-- How It Works -->
+<section class="how-it-works">
+  <h2>How HandyHive Works</h2>
+  <p class="section-sub">From search to payment — everything happens in one seamless flow</p>
+  <div class="steps-grid">
+    @for (step of steps; track step.number) {
+      <div class="step-card">
+        <div class="step-number">{{ step.number }}</div>
+        <h3>{{ step.title }}</h3>
+        <p>{{ step.description }}</p>
+      </div>
+    }
+  </div>
+</section>
+
+<!-- Benefits -->
+<section class="benefits">
+  <h2>Why Choose Handy<span class="highlight">Hive</span>?</h2>
+  <p class="section-sub">Built for trust, speed, and peace of mind</p>
+  <div class="benefits-grid">
+    @for (benefit of benefits; track benefit.title) {
+      <div class="benefit-card">
+        <mat-icon>{{ benefit.icon }}</mat-icon>
+        <h3>{{ benefit.title }}</h3>
+        <p>{{ benefit.description }}</p>
+      </div>
+    }
+  </div>
+</section>
+
+<!-- Testimonials -->
+<section class="testimonials">
+  <h2>Trusted by Thousands</h2>
+  <p class="section-sub">Real stories from real users across South Africa</p>
+  <div class="testimonial-grid">
+    @for (t of testimonials; track t.name) {
+      <div class="testimonial-card">
+        <div class="t-stars">★★★★★</div>
+        <p class="t-text">"{{ t.text }}"</p>
+        <div class="t-author">
+          <div class="t-avatar">{{ t.name.charAt(0) }}</div>
+          <div>
+            <strong>{{ t.name }}</strong>
+            <span>{{ t.role }}</span>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</section>
+
+<!-- Provider CTA -->
+<section class="provider-cta">
+  <div class="cta-inner">
+    <div class="cta-text">
+      <h2>Earn on Your Own Terms</h2>
+      <p>Join 500+ providers already growing their business on HandyHive. Set your own rates, choose your hours, and get paid fast.</p>
+      <ul class="cta-list">
+        <li><mat-icon>check_circle</mat-icon> No signup or monthly fees</li>
+        <li><mat-icon>check_circle</mat-icon> Get paid within 24 hours</li>
+        <li><mat-icon>check_circle</mat-icon> Built-in booking management</li>
+        <li><mat-icon>check_circle</mat-icon> Verified badge builds trust</li>
+      </ul>
+      <a mat-flat-button class="btn-primary" routerLink="/provider/register">Start Earning Today</a>
+    </div>
+    <div class="cta-visual">
+      <div class="earnings-preview">
+        <span class="ep-label">This Week</span>
+        <span class="ep-amount">R 4,850</span>
+        <div class="ep-bar"><div class="ep-fill"></div></div>
+        <span class="ep-jobs">12 jobs completed</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <span class="f-logo">Handy<span class="highlight">Hive</span></span>
+      <p>Connecting you with trusted home service professionals, on demand. Available across South Africa.</p>
+    </div>
+    <div class="footer-links">
+      <h4>Product</h4>
+      <a href="#">How It Works</a>
+      <a href="#">Pricing</a>
+      <a href="#">For Providers</a>
+      <a href="#">Mobile App</a>
+    </div>
+    <div class="footer-links">
+      <h4>Company</h4>
+      <a href="#">About Us</a>
+      <a href="#">Careers</a>
+      <a href="#">Blog</a>
+      <a href="#">Press</a>
+    </div>
+    <div class="footer-links">
+      <h4>Support</h4>
+      <a href="#">Help Center</a>
+      <a href="#">Safety</a>
+      <a href="#">Terms of Service</a>
+      <a href="#">Privacy Policy</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2024 HandyHive. All rights reserved. Made with 💚 in South Africa.</p>
+  </div>
+</footer>
