@@ -52,9 +52,22 @@ import { AuthService } from '../../auth/services/auth.service';
 
       @if (applicationPending) {
         <mat-card class="card-elevated" style="text-align:center; padding:32px;">
-          <mat-icon style="font-size:48px;width:48px;height:48px;color:#FFB800;">hourglass_top</mat-icon>
-          <h3>Application Already Submitted</h3>
-          <p style="color:#666;">Your provider application is currently <strong>{{ applicationStatus }}</strong>. Please wait for admin review.</p>
+          <div *ngIf="applicationStatus === 'pending'">
+            <div style="font-size:48px;margin-bottom:12px">⏳</div>
+            <h3>Application Pending</h3>
+            <p style="color:#666;">Your provider application is currently under review. Please wait for admin approval.</p>
+          </div>
+          <div *ngIf="applicationStatus === 'active'">
+            <div style="font-size:48px;margin-bottom:12px">✅</div>
+            <h3>You are already a Service Provider!</h3>
+            <p style="color:#666;margin-bottom:16px">You can update your service categories below. Changes will require re-approval.</p>
+            <a routerLink="/provider/dashboard" style="color:#06C167;font-weight:600;text-decoration:none">Go to Provider Dashboard →</a>
+          </div>
+          <div *ngIf="applicationStatus === 'suspended' || applicationStatus === 'deactivated'">
+            <div style="font-size:48px;margin-bottom:12px">🚫</div>
+            <h3>Application {{ applicationStatus }}</h3>
+            <p style="color:#666;">Your previous application was {{ applicationStatus }}. You may re-apply below.</p>
+          </div>
         </mat-card>
       } @else if (!successMessage) {
         <mat-card class="card-elevated">
@@ -244,19 +257,21 @@ export class ProviderRegistrationComponent implements OnInit {
             password: 'prefilled123!A',
           });
 
-          // Check if already applied
-          this.http.get<any>(`${environment.apiUrl}/providers/check-status`, {
-            params: { email: this.userEmail }
-          }).subscribe({
-            next: (result) => {
+          // Check if already applied (direct fetch, bypass interceptor for speed)
+          fetch(`${environment.apiUrl}/providers/check-status?email=${encodeURIComponent(this.userEmail)}`)
+            .then(r => r.json())
+            .then(result => {
               if (result.exists) {
-                this.applicationPending = true;
+                if (result.status === 'suspended' || result.status === 'deactivated') {
+                  this.applicationPending = false;
+                } else {
+                  this.applicationPending = true;
+                }
                 this.applicationStatus = result.status;
               }
               this.checkingStatus = false;
-            },
-            error: () => { this.checkingStatus = false; }
-          });
+            })
+            .catch(() => { this.checkingStatus = false; });
         } catch { this.checkingStatus = false; }
       } else {
         this.checkingStatus = false;
