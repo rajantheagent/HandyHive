@@ -60,7 +60,11 @@ interface ProviderResult {
       </div>
 
       <div class="content-area">
-        <div class="map-area" id="map"></div>
+        <div class="map-area" id="map">
+          <button class="my-location-btn" (click)="goToMyLocation()" title="My Location">
+            <mat-icon>my_location</mat-icon>
+          </button>
+        </div>
 
         <div class="results-panel">
           @if (loading) {
@@ -104,7 +108,15 @@ interface ProviderResult {
     ::ng-deep .search-header .mat-mdc-form-field-subscript-wrapper { display: none; }
     .content-area { flex: 1; display: flex; overflow: hidden; }
     @media (max-width: 768px) { .content-area { flex-direction: column; } }
-    .map-area { flex: 1; min-height: 300px; }
+    .map-area { flex: 1; min-height: 300px; position: relative; }
+    .my-location-btn {
+      position: absolute; bottom: 16px; right: 16px; z-index: 1000;
+      width: 40px; height: 40px; border-radius: 50%; border: none; background: white;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3); cursor: pointer; display: flex;
+      align-items: center; justify-content: center; transition: background 0.2s;
+    }
+    .my-location-btn:hover { background: #f0f0f0; }
+    .my-location-btn mat-icon { color: #666; font-size: 20px; width: 20px; height: 20px; }
     .results-panel { width: 360px; overflow-y: auto; padding: 16px; border-left: 1px solid #eee; }
     @media (max-width: 768px) { .results-panel { width: 100%; max-height: 40vh; border-left: none; border-top: 1px solid #eee; } }
     .loading-state { display: flex; align-items: center; gap: 10px; padding: 24px; color: #666; }
@@ -203,6 +215,23 @@ export class MapViewComponent implements OnInit, AfterViewInit, OnDestroy {
   expandRadius(): void {
     this.radius = Math.min(this.radius + 5, 25);
     this.search();
+  }
+
+  goToMyLocation(): void {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          this.userLat = pos.coords.latitude;
+          this.userLng = pos.coords.longitude;
+          this.map.setView([this.userLat, this.userLng], 15);
+          L.circleMarker([this.userLat, this.userLng], {
+            radius: 8, fillColor: '#4285F4', color: '#fff', weight: 2, fillOpacity: 1
+          }).addTo(this.map);
+          this.search();
+        },
+        () => { alert('Could not detect your location. Please allow location access.'); }
+      );
+    }
   }
 
   private updateMapMarkers(): void {

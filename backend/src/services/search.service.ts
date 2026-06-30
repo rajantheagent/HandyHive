@@ -62,6 +62,7 @@ export class SearchService {
       return JSON.parse(cached);
     }
 
+    try {
     // Build PostGIS query
     let query = this.providerRepo
       .createQueryBuilder('sp')
@@ -156,6 +157,12 @@ export class SearchService {
     await redisService.setSearchCache(cacheHash, JSON.stringify(result));
 
     return result;
+
+    } catch (error) {
+      console.error('[Search] Query failed:', error);
+      // Return empty results instead of crashing
+      return { providers: [], total: 0, radius_km: radiusKm };
+    }
   }
 
   /**
