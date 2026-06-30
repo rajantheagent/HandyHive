@@ -71,7 +71,7 @@ export class App implements OnInit {
     if (token) {
       try {
         const payload = JSON.parse(atob(token.split('.')[1]));
-        this.userName = payload.email?.split('@')[0] || 'User';
+        this.userName = payload.fullName || payload.email?.split('@')[0] || 'User';
         this.userInitial = this.userName.charAt(0).toUpperCase();
         this.isAdmin = payload.role === 'admin';
       } catch {
