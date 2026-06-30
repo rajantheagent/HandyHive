@@ -74,7 +74,7 @@ export class AuthService {
     }
 
     // Generate tokens
-    const tokens = jwtService.generateTokens(user.id, user.email, user.role);
+    const tokens = jwtService.generateTokens(user.id, user.email, user.role, user.full_name);
 
     // Store session in Redis (graceful if Redis unavailable)
     await redisService.setSession(user.id, JSON.stringify({
@@ -104,7 +104,7 @@ export class AuthService {
       throw ApiError.unauthorized('User not found');
     }
 
-    return jwtService.generateTokens(user.id, user.email, user.role);
+    return jwtService.generateTokens(user.id, user.email, user.role, user.full_name);
   }
 
   /**

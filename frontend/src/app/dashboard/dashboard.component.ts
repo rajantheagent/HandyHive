@@ -74,7 +74,7 @@ export class DashboardComponent implements OnInit {
     if (token) {
       try {
         const payload = JSON.parse(atob(token.split('.')[1]));
-        this.userName = payload.email?.split('@')[0] || 'User';
+        this.userName = payload.fullName || payload.email?.split('@')[0] || 'User';
       } catch { this.userName = 'User'; }
     }
   }

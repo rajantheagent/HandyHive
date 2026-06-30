@@ -100,10 +100,24 @@ export class AdminDashboardComponent implements OnInit {
   constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
+    console.log('[AdminDashboard] Loading...');
+    const token = localStorage.getItem('accessToken');
+    console.log('[AdminDashboard] Token exists:', !!token);
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        console.log('[AdminDashboard] Token role:', payload.role);
+      } catch {}
+    }
+
     this.http.get<any>(`${environment.apiUrl}/admin/dashboard`).subscribe({
-      next: (data) => { this.metrics = data; this.loading = false; },
-      error: () => {
-        // Show empty metrics on error instead of loading forever
+      next: (data) => {
+        console.log('[AdminDashboard] Success:', data);
+        this.metrics = data;
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('[AdminDashboard] Error:', err.status, err.error);
         this.metrics = { totalUsers: 0, activeProviders: 0, dailyBookings: 0, totalRevenue: 0, pendingVerifications: 0 };
         this.loading = false;
       }

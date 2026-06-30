@@ -36,6 +36,13 @@ import { AuthService } from '../../auth/services/auth.service';
       <h2>Become a Service Provider</h2>
       <p class="subtitle">Join our network and start earning</p>
 
+      @if (checkingStatus) {
+        <div style="text-align:center; padding:48px;">
+          <mat-spinner diameter="32" style="margin:0 auto"></mat-spinner>
+          <p style="color:#666; margin-top:12px;">Checking application status...</p>
+        </div>
+      } @else {
+
       @if (errorMessage) {
         <div class="error-banner">{{ errorMessage }}</div>
       }
@@ -165,6 +172,7 @@ import { AuthService } from '../../auth/services/auth.service';
           </mat-card-content>
         </mat-card>
       }
+      }
     </div>
   `,
   styles: [`
@@ -216,6 +224,7 @@ export class ProviderRegistrationComponent implements OnInit {
 
   applicationPending = false;
   applicationStatus = '';
+  checkingStatus = true;
 
   ngOnInit(): void {
     // If user is logged in, prefill their details and skip personal info step
@@ -226,7 +235,7 @@ export class ProviderRegistrationComponent implements OnInit {
         try {
           const payload = JSON.parse(atob(token.split('.')[1]));
           this.userEmail = payload.email || '';
-          this.userFullName = payload.email?.split('@')[0] || '';
+          this.userFullName = payload.fullName || payload.email?.split('@')[0] || '';
           // Prefill the form so it passes validation
           this.personalForm.patchValue({
             full_name: this.userFullName,
@@ -244,11 +253,16 @@ export class ProviderRegistrationComponent implements OnInit {
                 this.applicationPending = true;
                 this.applicationStatus = result.status;
               }
+              this.checkingStatus = false;
             },
-            error: () => {}
+            error: () => { this.checkingStatus = false; }
           });
-        } catch {}
+        } catch { this.checkingStatus = false; }
+      } else {
+        this.checkingStatus = false;
       }
+    } else {
+      this.checkingStatus = false;
     }
   }
 

@@ -23,10 +23,13 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     authReq = req.clone({
       setHeaders: { Authorization: `Bearer ${token}` }
     });
+  } else {
+    console.warn('[Interceptor] No token available for:', req.url);
   }
 
   return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
+      console.error('[Interceptor] Error', error.status, 'for:', req.url);
       if (error.status === 401 && !req.url.includes('/auth/refresh')) {
         // Attempt token refresh with a 5-second timeout
         return authService.refreshToken().pipe(
@@ -37,8 +40,8 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
             });
             return next(retryReq);
           }),
-          catchError(() => {
-            // Refresh failed — don't redirect, just pass the error through
+          catchError((refreshErr) => {
+            console.error('[Interceptor] Refresh failed:', refreshErr);
             return throwError(() => error);
           })
         );

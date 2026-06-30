@@ -4,6 +4,7 @@ import { config } from '../config';
 export interface TokenPayload {
   userId: string;
   email: string;
+  fullName: string;
   role: string;
   type: 'access' | 'refresh';
 }
@@ -18,9 +19,9 @@ export class JwtService {
   /**
    * Generate access and refresh tokens for a user.
    */
-  generateTokens(userId: string, email: string, role: string): AuthTokens {
-    const accessPayload: object = { userId, email, role, type: 'access' };
-    const refreshPayload: object = { userId, email, role, type: 'refresh' };
+  generateTokens(userId: string, email: string, role: string, fullName: string = ''): AuthTokens {
+    const accessPayload: object = { userId, email, role, fullName, type: 'access' };
+    const refreshPayload: object = { userId, email, role, fullName, type: 'refresh' };
 
     const accessOptions: SignOptions = { expiresIn: '1h' };
     const refreshOptions: SignOptions = { expiresIn: '24h' };
