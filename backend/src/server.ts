@@ -3,6 +3,29 @@ import app from './app';
 import { config } from './config';
 import { AppDataSource } from './config/data-source';
 import { trackingService } from './services/tracking.service';
+import { ServiceCategory } from './entities/ServiceCategory';
+
+const DEFAULT_CATEGORIES = [
+  { name: 'Electrician', description: 'Wiring, repairs, installations & electrical inspections' },
+  { name: 'Plumber', description: 'Pipe leaks, blocked drains, geyser repairs & fittings' },
+  { name: 'Carpenter', description: 'Furniture, doors, cabinets, shelving & wood restoration' },
+  { name: 'Painter', description: 'Interior & exterior painting, waterproofing & finishes' },
+  { name: 'Cleaner', description: 'Deep cleaning, move-in/out, carpet & window washing' },
+  { name: 'AC & HVAC', description: 'Installation, gas refills, duct cleaning & servicing' },
+  { name: 'Locksmith', description: 'Lock changes, key cutting, gate motors & access control' },
+  { name: 'Gardening', description: 'Lawn mowing, hedge trimming, irrigation & landscaping' },
+];
+
+async function seedCategories(): Promise<void> {
+  const repo = AppDataSource.getRepository(ServiceCategory);
+  const count = await repo.count();
+  if (count === 0) {
+    for (const cat of DEFAULT_CATEGORIES) {
+      await repo.save(repo.create({ name: cat.name, description: cat.description, is_active: true }));
+    }
+    console.log(`Seeded ${DEFAULT_CATEGORIES.length} default service categories`);
+  }
+}
 
 const startServer = async (): Promise<void> => {
   try {
@@ -17,6 +40,9 @@ const startServer = async (): Promise<void> => {
     } catch (e: any) {
       console.warn('PostGIS extension note:', e.message);
     }
+
+    // Seed default categories if empty
+    await seedCategories();
 
     // Create HTTP server (needed for Socket.IO)
     const httpServer = createServer(app);

@@ -1,10 +1,10 @@
 import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { catchError, switchMap, throwError } from 'rxjs';
+import { catchError, switchMap, throwError, timeout } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 
-const PUBLIC_URLS = ['/auth/login', '/auth/register', '/auth/forgot-password', '/auth/verify-email'];
+const PUBLIC_URLS = ['/auth/login', '/auth/register', '/auth/forgot-password', '/auth/verify-email', '/auth/change-password'];
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
@@ -28,8 +28,9 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
       if (error.status === 401 && !req.url.includes('/auth/refresh')) {
-        // Attempt token refresh
+        // Attempt token refresh with a 5-second timeout
         return authService.refreshToken().pipe(
+          timeout(5000),
           switchMap(response => {
             const retryReq = req.clone({
               setHeaders: { Authorization: `Bearer ${response.accessToken}` }
@@ -37,9 +38,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
             return next(retryReq);
           }),
           catchError(() => {
-            // Refresh failed, redirect to login
-            authService.logout();
-            router.navigate(['/auth/login']);
+            // Refresh failed — don't redirect, just pass the error through
             return throwError(() => error);
           })
         );

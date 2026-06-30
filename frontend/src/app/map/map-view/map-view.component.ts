@@ -141,6 +141,7 @@ export class MapViewComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private map!: L.Map;
   private markers: L.Marker[] = [];
+  private radiusCircle: L.Circle | null = null;
   private userLat = -26.2041;
   private userLng = 28.0473;
 
@@ -238,6 +239,23 @@ export class MapViewComponent implements OnInit, AfterViewInit, OnDestroy {
     // Clear old markers
     this.markers.forEach(m => m.remove());
     this.markers = [];
+
+    // Draw/update radius circle
+    if (this.radiusCircle) {
+      this.radiusCircle.remove();
+    }
+    this.radiusCircle = L.circle([this.userLat, this.userLng], {
+      radius: this.radius * 1000, // km to meters
+      color: '#4285F4',
+      fillColor: '#4285F4',
+      fillOpacity: 0.06,
+      weight: 1.5,
+      opacity: 0.3,
+      dashArray: '5, 5'
+    }).addTo(this.map);
+
+    // Fit map to show the full radius
+    this.map.fitBounds(this.radiusCircle.getBounds(), { padding: [20, 20] });
 
     // Add provider markers
     this.providers.forEach(p => {
