@@ -3,6 +3,9 @@ node_modules/
 .pnp
 .pnp.js
 
+# Uploaded files
+uploads/
+
 # Build outputs
 dist/
 build/

@@ -15,13 +15,13 @@
 .toolbar-btn { margin-left: 8px !important; border-radius: 8px !important; font-size: 0.85rem !important; }
 
 .user-menu-btn {
-  display: flex !important; align-items: center; gap: 6px; color: #fff !important;
+  display: flex !important; align-items: center; gap: 8px; color: #fff !important;
   border-radius: 8px !important; padding: 4px 10px !important; height: 36px !important;
 }
 .user-avatar {
   width: 26px; height: 26px; border-radius: 50%; background: #06C167; color: white;
   display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.72rem;
-  flex-shrink: 0;
+  flex-shrink: 0; margin-right: 4px;
 }
 .user-name { font-size: 0.82rem; font-weight: 500; }
 

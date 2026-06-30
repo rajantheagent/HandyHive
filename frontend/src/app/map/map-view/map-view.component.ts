@@ -148,10 +148,10 @@ export class MapViewComponent implements OnInit, AfterViewInit, OnDestroy {
   private initMap(): void {
     this.map = L.map('map').setView([this.userLat, this.userLng], 13);
 
-    // OpenFreeMap tiles (free, no API key needed)
-    L.tileLayer('https://tiles.openfreemap.org/styles/liberty/{z}/{x}/{y}.png', {
+    // OpenStreetMap tiles (free, no API key needed)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
-      attribution: '© <a href="https://openfreemap.org">OpenFreeMap</a> contributors'
+      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(this.map);
 
     // User location marker

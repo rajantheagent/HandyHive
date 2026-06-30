@@ -1,31 +1,17 @@
-import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
-import { config } from '../config';
-import crypto from 'crypto';
 import path from 'path';
+import fs from 'fs';
+import crypto from 'crypto';
 
+const UPLOAD_DIR = path.join(process.cwd(), 'uploads');
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'application/pdf'];
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 
+// Ensure uploads directory exists
+if (!fs.existsSync(UPLOAD_DIR)) {
+  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+}
+
 export class StorageService {
-  private s3Client: S3Client | null = null;
-  private bucket: string;
-
-  constructor() {
-    this.bucket = process.env.S3_BUCKET || 'handyhive-uploads';
-
-    if (process.env.S3_ENDPOINT) {
-      this.s3Client = new S3Client({
-        endpoint: process.env.S3_ENDPOINT,
-        region: process.env.S3_REGION || 'us-east-1',
-        credentials: {
-          accessKeyId: process.env.S3_ACCESS_KEY || 'minioadmin',
-          secretAccessKey: process.env.S3_SECRET_KEY || 'minioadmin',
-        },
-        forcePathStyle: true, // Required for MinIO
-      });
-    }
-  }
-
   /**
    * Validate file format and size.
    */
@@ -40,44 +26,39 @@ export class StorageService {
   }
 
   /**
-   * Upload a file to S3/MinIO or store locally in dev.
-   * Returns the URL of the uploaded file.
+   * Upload a file to local filesystem.
+   * Returns the URL path to access the file.
    */
   async uploadFile(file: { buffer: Buffer; mimetype: string; originalname: string }, folder: string): Promise<string> {
     const ext = path.extname(file.originalname);
-    const filename = `${folder}/${crypto.randomUUID()}${ext}`;
+    const filename = `${crypto.randomUUID()}${ext}`;
+    const folderPath = path.join(UPLOAD_DIR, folder);
 
-    if (this.s3Client) {
-      await this.s3Client.send(new PutObjectCommand({
-        Bucket: this.bucket,
-        Key: filename,
-        Body: file.buffer,
-        ContentType: file.mimetype,
-      }));
-
-      const endpoint = process.env.S3_ENDPOINT || `https://${this.bucket}.s3.amazonaws.com`;
-      return `${endpoint}/${this.bucket}/${filename}`;
+    // Ensure subfolder exists
+    if (!fs.existsSync(folderPath)) {
+      fs.mkdirSync(folderPath, { recursive: true });
     }
 
-    // In development without S3, return a mock URL
-    console.log(`[DEV] File upload simulated: ${filename} (${file.buffer.length} bytes)`);
-    return `http://localhost:3000/uploads/${filename}`;
+    const filePath = path.join(folderPath, filename);
+    fs.writeFileSync(filePath, file.buffer);
+
+    console.log(`[Storage] File saved: ${filePath}`);
+
+    // Return a URL that can be served by Express static middleware
+    return `/uploads/${folder}/${filename}`;
   }
 
   /**
-   * Delete a file from storage.
+   * Delete a file from local storage.
    */
   async deleteFile(fileUrl: string): Promise<void> {
-    if (!this.s3Client) {
-      console.log(`[DEV] File delete simulated: ${fileUrl}`);
-      return;
-    }
+    const relativePath = fileUrl.replace('/uploads/', '');
+    const fullPath = path.join(UPLOAD_DIR, relativePath);
 
-    const key = fileUrl.split('/').slice(-2).join('/');
-    await this.s3Client.send(new DeleteObjectCommand({
-      Bucket: this.bucket,
-      Key: key,
-    }));
+    if (fs.existsSync(fullPath)) {
+      fs.unlinkSync(fullPath);
+      console.log(`[Storage] File deleted: ${fullPath}`);
+    }
   }
 }
 
