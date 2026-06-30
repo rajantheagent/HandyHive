@@ -1,0 +1,4 @@
+admin-dashboard.component.ts:103 [AdminDashboard] Loading...
+admin-dashboard.component.ts:105 [AdminDashboard] Token exists: true
+admin-dashboard.component.ts:109 [AdminDashboard] Token role: admin
+admin-dashboard.component.ts:115 [AdminDashboard] Success: {totalUsers: 4, activeProviders: 0, dailyBookings: 0, totalRevenue: 0, pendingVerifications: 1}activeProviders: 0dailyBookings: 0pendingVerifications: 1totalRevenue: 0totalUsers: 4[[Prototype]]: Object
